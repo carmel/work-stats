@@ -1,20 +1,57 @@
 # work-stats
 
-ID | 项目名称 | 年 | 月 | 上线时间（ts） | 下线时间（ts）
+Command Line Based Job Timing Tool.
 
-## commands
+## build
+
 ```sh
+go build
+```
+
+## command usage
+
+```sh
+stats -c conf.yml
 # get online
 stats up
 # get offline
 stats down
-# export to csv
+# export as csv
 stats out
+# aggregate the record of specify year and month
+stats
+# list the record of specify year and month
+stats ls
+```
+
+## args usage
+```sh
+Usage of ./stats:
+  -c string
+    	configuration file (default "conf.yml")
+  -m int
+    	stats month (default current month)
+  -y int
+    	stats year (default current year)
 ```
 
 ## configuration
+
 ```yaml
 db: sqlite3_db_path
 project: project_name
-current-up-id: current_up_id
+cursor: current_up_id
 ```
+
+## list
+
+|   Project   | Year | Month |      Up At |    Down At |
+| :---------: | ---: | ----: | ---------: | ---------: |
+| cornerstone | 2023 |    10 | 1698466065 | 1698466107 |
+| cornerstone | 2023 |    10 | 1698465826 | 1698466057 |
+
+## aggregate
+
+|   Project   | Year | Month | Hours |
+| :---------: | ---: | ----: | ----: |
+| cornerstone | 2023 |    10 |  5.00 |
