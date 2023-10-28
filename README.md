@@ -16,23 +16,24 @@ stats -c conf.yml
 stats up
 # get offline
 stats down
-# export as csv
+# export as csv by year and month
 stats out
-# aggregate the record of specify year and month
+# aggregate the record by year and month
 stats
-# list the record of specify year and month
+# list the record by year and month
 stats ls
 ```
 
 ## args usage
+
 ```sh
 Usage of ./stats:
   -c string
-    	configuration file (default "conf.yml")
+     configuration file (default "conf.yml")
   -m int
-    	stats month (default current month)
+     stats month (default current month)
   -y int
-    	stats year (default current year)
+     stats year (default current year)
 ```
 
 ## configuration

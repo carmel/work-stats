@@ -17,16 +17,19 @@ import (
 )
 
 var (
-	conf    Config
-	db      *sql.DB
-	err     error
-	now     = time.Now()
-	config  = flag.String("c", "conf.yml", "configuration file")
-	year    = flag.Int("y", now.Year(), "stats year")
-	month   = flag.Int("m", int(now.Month()), "stats month")
-	ls      = flag.NewFlagSet("ls", flag.ExitOnError)
-	lsYear  = ls.Int("y", now.Year(), "list by year")
-	lsMonth = ls.Int("m", int(now.Month()), "list by month")
+	conf     Config
+	db       *sql.DB
+	err      error
+	now      = time.Now()
+	config   = flag.String("c", "conf.yml", "configuration file")
+	year     = flag.Int("y", now.Year(), "stats year")
+	month    = flag.Int("m", int(now.Month()), "stats month")
+	ls       = flag.NewFlagSet("ls", flag.ExitOnError)
+	lsYear   = ls.Int("y", now.Year(), "list by year")
+	lsMonth  = ls.Int("m", int(now.Month()), "list by month")
+	out      = flag.NewFlagSet("out", flag.ExitOnError)
+	outYear  = out.Int("y", now.Year(), "export by year")
+	outMonth = out.Int("m", int(now.Month()), "export by month")
 	// header = []string{"Project", "Year", "Month", "Up At", "Down At"}
 )
 
@@ -72,7 +75,7 @@ func main() {
 	)
 
 	if len(os.Args) < 2 {
-		head, res := list()
+		head, res := list(*year, *month)
 		print(res, head...)
 	} else {
 		switch os.Args[1] {
@@ -101,25 +104,26 @@ func main() {
 			}
 		case "ls":
 			ls.Parse(os.Args[2:])
-			head, res := list()
+			head, res := list(*lsYear, *lsMonth)
 			print(res, head...)
 
 		case "out":
-			var out *os.File
+			out.Parse(os.Args[2:])
+			var f *os.File
 			name := fmt.Sprintf("%s.csv", conf.Project)
-			out, err = os.Create(name)
+			f, err = os.Create(name)
 			if err != nil {
 				log.Fatalf("fail to create '%s': %s\n", name, err)
 			}
 
-			head, res := list()
+			head, res := list(*outYear, *outMonth)
 
-			wr := csv.NewWriter(out)
+			wr := csv.NewWriter(f)
 			defer wr.Flush()
 			wr.Write(head)
 
-			r := make([]string, len(head))
 			for _, v := range res {
+				var r []string
 				for _, h := range head {
 					r = append(r, fmt.Sprintf("%v", v[h]))
 				}
@@ -198,18 +202,18 @@ func agg() (head []string, res []map[string]any) {
 	return
 }
 
-func list() (head []string, res []map[string]any) {
+func list(year, month int) (head []string, res []map[string]any) {
 	query := "SELECT project,year,month,up_at,IFNULL(down_at,0) FROM record WHERE project=? AND year=?"
-	if *lsMonth != 0 {
-		query = fmt.Sprintf("%s AND month=%d", query, *lsMonth)
+	if month != 0 {
+		query = fmt.Sprintf("%s AND month=%d", query, month)
 	}
 	var rows *sql.Rows
-	rows, err = db.Query(query, conf.Project, *lsYear)
+	rows, err = db.Query(query, conf.Project, year)
 	if err != nil {
 		log.Fatalln("fail to select record:", err)
 	}
 
-	head = []string{"Project", "Year", "Month", "Up At", "Down At"}
+	head = []string{"Project", "Year", "Month", "Up", "Down"}
 
 	var r Record
 	for rows.Next() {
