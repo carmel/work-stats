@@ -8,10 +8,11 @@ Command Line Based Job Timing Tool.
 go build
 ```
 
+> Note: Fixed yaml configuration file is `stats.yaml` in the current directory
+
 ## command usage
 
 ```sh
-stats -c conf.yml
 # get online
 stats up
 # get offline
@@ -28,8 +29,6 @@ stats ls
 
 ```sh
 Usage of ./stats:
-  -c string
-     configuration file (default "conf.yml")
   -m int
      stats month (default current month)
   -y int
@@ -46,7 +45,7 @@ cursor: current_up_id
 
 ## list
 
-|   Project   | Year | Month |      Up At |    Down At |
+|   Project   | Year | Month |         Up |       Down |
 | :---------: | ---: | ----: | ---------: | ---------: |
 | cornerstone | 2023 |    10 | 1698466065 | 1698466107 |
 | cornerstone | 2023 |    10 | 1698465826 | 1698466057 |

@@ -16,20 +16,25 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+const (
+	config = "stats.yaml"
+)
+
 var (
-	conf     Config
-	db       *sql.DB
-	err      error
-	now      = time.Now()
-	config   = flag.String("c", "conf.yml", "configuration file")
+	conf Config
+	db   *sql.DB
+	err  error
+	now  = time.Now()
+
+	// config   = flag.String("c", "stats.yaml", "configuration file")
 	year     = flag.Int("y", now.Year(), "stats year")
 	month    = flag.Int("m", int(now.Month()), "stats month")
 	ls       = flag.NewFlagSet("ls", flag.ExitOnError)
-	lsYear   = ls.Int("y", now.Year(), "list by year")
-	lsMonth  = ls.Int("m", int(now.Month()), "list by month")
+	lsYear   = ls.Int("y", *year, "list by year")
+	lsMonth  = ls.Int("m", *month, "list by month")
 	out      = flag.NewFlagSet("out", flag.ExitOnError)
-	outYear  = out.Int("y", now.Year(), "export by year")
-	outMonth = out.Int("m", int(now.Month()), "export by month")
+	outYear  = out.Int("y", *year, "export by year")
+	outMonth = out.Int("m", *month, "export by month")
 	// header = []string{"Project", "Year", "Month", "Up At", "Down At"}
 )
 
@@ -37,7 +42,7 @@ func main() {
 	flag.Parse()
 
 	var c []byte
-	c, err = os.ReadFile(*config)
+	c, err = os.ReadFile(config)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -81,7 +86,7 @@ func main() {
 		switch os.Args[1] {
 		case "up":
 			conf.Cursor = uuid.New().ID()
-			_, err = db.ExecContext(ctx, "INSERT INTO record(id,project,year,month,up_at)VALUES(?,?,?,?,?)", conf.Cursor, conf.Project, now.Year(), now.Month(), now.Unix())
+			_, err = db.ExecContext(ctx, "INSERT INTO record(id,project,year,month,up_at)VALUES(?,?,?,?,?)", conf.Cursor, conf.Project, *year, *month, now.Unix())
 			if err != nil {
 				log.Fatalln("[up] sql exec:", err)
 			}
@@ -90,7 +95,7 @@ func main() {
 			if err != nil {
 				log.Fatalln("marshal config model:", err)
 			}
-			err = os.WriteFile(*config, buf, 0)
+			err = os.WriteFile(config, buf, 0)
 			if err != nil {
 				log.Fatalln("write cursor to yaml:", err)
 			}
