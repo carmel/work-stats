@@ -114,26 +114,9 @@ func main() {
 
 		case "out":
 			out.Parse(os.Args[2:])
-			var f *os.File
-			name := fmt.Sprintf("%s.csv", conf.Project)
-			f, err = os.Create(name)
-			if err != nil {
-				log.Fatalf("fail to create '%s': %s\n", name, err)
-			}
-
 			head, res := list(*outYear, *outMonth)
+			writeCSV(conf.Project, head, res)
 
-			wr := csv.NewWriter(f)
-			defer wr.Flush()
-			wr.Write(head)
-
-			for _, v := range res {
-				var r []string
-				for _, h := range head {
-					r = append(r, fmt.Sprintf("%v", v[h]))
-				}
-				wr.Write(r)
-			}
 		default:
 			head, res := agg()
 			print(res, head...)
@@ -232,4 +215,31 @@ func list(year, month int) (head []string, res []map[string]any) {
 		})
 	}
 	return
+}
+
+func writeCSV(name string, head []string, data []map[string]any) {
+	var f *os.File
+	name = fmt.Sprintf("%s.csv", name)
+	f, err = os.Create(name)
+	if err != nil {
+		log.Fatalf("fail to create '%s': %s\n", name, err)
+	}
+	defer f.Close()
+	_, err = f.WriteString("\xEF\xBB\xBF") // Marked as UTF-8 BOM
+	if err != nil {
+		log.Fatalln("fail to write:", err)
+	}
+
+	wr := csv.NewWriter(f)
+	wr.Write(head) // write the header
+
+	for _, v := range data {
+		var r []string
+		for _, h := range head {
+			r = append(r, fmt.Sprintf("%v", v[h]))
+		}
+		wr.Write(r)
+	}
+
+	wr.Flush()
 }
