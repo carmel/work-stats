@@ -146,7 +146,7 @@ func agg() (head []string, res []map[string]any) {
 	query := "SELECT %s FROM record WHERE project=? AND year=? AND down_at IS NOT NULL"
 	if *month != 0 {
 		head = []string{"Project", "Year", "Month", "Hours"}
-		query = fmt.Sprintf(query, "project,year,month,printf('%.2f',SUM(down_at-up_at)/3600) AS hours")
+		query = fmt.Sprintf(query, "project,year,month,printf('%.2f',SUM(down_at-up_at)/3600.0) AS hours")
 		query = fmt.Sprintf("%s AND month=%d GROUP BY project,year,month", query, *month)
 
 		var rows *sql.Rows
@@ -168,7 +168,7 @@ func agg() (head []string, res []map[string]any) {
 
 	} else {
 		head = []string{"Project", "Year", "Hours"}
-		query = fmt.Sprintf(query, "project,year,printf('%.2f',SUM(down_at-up_at)/3600) AS hours")
+		query = fmt.Sprintf(query, "project,year,printf('%.2f',SUM(down_at-up_at)/3600.0) AS hours")
 		query = fmt.Sprintf("%s GROUP BY project,year", query)
 
 		var rows *sql.Rows
