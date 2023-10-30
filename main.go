@@ -38,8 +38,7 @@ var (
 	// header = []string{"Project", "Year", "Month", "Up At", "Down At"}
 )
 
-func main() {
-	flag.Parse()
+func init() {
 
 	var c []byte
 	c, err = os.ReadFile(config)
@@ -60,14 +59,19 @@ func main() {
 		log.Fatalln("Please specify project name!")
 	}
 
+}
+
+func main() {
+
 	db, err = sql.Open("sqlite3", conf.DB)
 	if err != nil {
 		log.Fatalln(err)
 	}
 	defer db.Close()
 
-	ctx := context.Background()
+	flag.Parse()
 
+	ctx := context.Background()
 	_, err = db.ExecContext(ctx, `
 		CREATE TABLE IF NOT EXISTS "record" (
 			"id"	    INTEGER not null primary key,
@@ -85,6 +89,12 @@ func main() {
 	} else {
 		switch os.Args[1] {
 		case "up":
+			var down int
+			db.QueryRow("SELECT IFNULL(down_at,0) FROM record WHERE id=?", conf.Cursor).Scan(&down)
+			if down == 0 {
+				log.Fatalln("failed to up, because the previous operation was not yet down.")
+			}
+
 			conf.Cursor = uuid.New().ID()
 			_, err = db.ExecContext(ctx, "INSERT INTO record(id,project,year,month,up_at)VALUES(?,?,?,?,?)", conf.Cursor, conf.Project, *year, *month, now.Unix())
 			if err != nil {
@@ -152,7 +162,7 @@ func agg() (head []string, res []map[string]any) {
 		var rows *sql.Rows
 		rows, err = db.Query(query, conf.Project, *year)
 		if err != nil {
-			log.Fatalln("fail to select record:", err)
+			log.Fatalln("failed to select record:", err)
 		}
 
 		var r Record
@@ -174,7 +184,7 @@ func agg() (head []string, res []map[string]any) {
 		var rows *sql.Rows
 		rows, err = db.Query(query, conf.Project, *year)
 		if err != nil {
-			log.Fatalln("fail to select record:", err)
+			log.Fatalln("failed to select record:", err)
 		}
 
 		var r Record
@@ -198,7 +208,7 @@ func list(year, month int) (head []string, res []map[string]any) {
 	var rows *sql.Rows
 	rows, err = db.Query(query, conf.Project, year)
 	if err != nil {
-		log.Fatalln("fail to select record:", err)
+		log.Fatalln("failed to select record:", err)
 	}
 
 	head = []string{"Project", "Year", "Month", "Up", "Down"}
@@ -222,12 +232,12 @@ func writeCSV(name string, head []string, data []map[string]any) {
 	name = fmt.Sprintf("%s.csv", name)
 	f, err = os.Create(name)
 	if err != nil {
-		log.Fatalf("fail to create '%s': %s\n", name, err)
+		log.Fatalf("failed to create '%s': %s\n", name, err)
 	}
 	defer f.Close()
 	_, err = f.WriteString("\xEF\xBB\xBF") // Marked as UTF-8 BOM
 	if err != nil {
-		log.Fatalln("fail to write:", err)
+		log.Fatalln("failed to write:", err)
 	}
 
 	wr := csv.NewWriter(f)

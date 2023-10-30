@@ -1,8 +1,10 @@
 package main
 
 import (
+	"database/sql"
 	"flag"
 	"fmt"
+	"log"
 	"os"
 	"testing"
 
@@ -11,6 +13,19 @@ import (
 
 func TestStats(t *testing.T) {
 	main()
+}
+
+func TestQuery(t *testing.T) {
+	db, err = sql.Open("sqlite3", conf.DB)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	defer db.Close()
+
+	var down int
+	db.QueryRow("SELECT IFNULL(down_at,0) FROM record WHERE id=?", conf.Cursor).Scan(&down)
+
+	fmt.Println(down)
 }
 
 func TestSubcommand(t *testing.T) {
