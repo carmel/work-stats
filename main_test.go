@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -23,9 +24,9 @@ func TestQuery(t *testing.T) {
 	defer db.Close()
 
 	var down int
-	db.QueryRow("SELECT IFNULL(down_at,0) FROM record WHERE id=?", conf.Cursor).Scan(&down)
-
-	fmt.Println(down)
+	err := db.QueryRow("SELECT IFNULL(down_at,0) FROM record WHERE id=?", conf.Cursor).Scan(&down)
+	fmt.Println(errors.Is(err, sql.ErrNoRows))
+	fmt.Println(err, down)
 }
 
 func TestSubcommand(t *testing.T) {

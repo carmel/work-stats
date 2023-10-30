@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/csv"
+	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -90,8 +91,9 @@ func main() {
 		switch os.Args[1] {
 		case "up":
 			var down int
-			db.QueryRow("SELECT IFNULL(down_at,0) FROM record WHERE id=?", conf.Cursor).Scan(&down)
-			if down == 0 {
+			err = db.QueryRow("SELECT IFNULL(down_at,0) FROM record WHERE id=?", conf.Cursor).Scan(&down)
+
+			if !errors.Is(err, sql.ErrNoRows) && down == 0 {
 				log.Fatalln("failed to up, because the previous operation was not yet down.")
 			}
 
