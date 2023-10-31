@@ -13,8 +13,10 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/google/uuid"
-	_ "github.com/mattn/go-sqlite3"
+
 	"gopkg.in/yaml.v2"
+	// _ "github.com/mattn/go-sqlite3"
+	_ "modernc.org/sqlite"
 )
 
 const (
@@ -64,7 +66,8 @@ func init() {
 
 func main() {
 
-	db, err = sql.Open("sqlite3", conf.DB)
+	// db, err = sql.Open("sqlite3", conf.DB)
+	db, err = sql.Open("sqlite", conf.DB)
 	if err != nil {
 		log.Fatalln(err)
 	}
